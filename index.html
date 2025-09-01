@@ -39,6 +39,33 @@
   </div>
 </div>
 
+  <script>
+  // ======== Username & Password default ========
+  const defaultUser = {
+    username: "admin",     // ubah sesuai kebutuhan
+    password: "130307"     // ubah sesuai kebutuhan
+  };
+
+  const loginForm = document.getElementById("loginForm");
+  const loginAlert = document.getElementById("loginAlert");
+
+  loginForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if (username === defaultUser.username && password === defaultUser.password) {
+      localStorage.setItem("isLoggedIn", "true");
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("dashboard").style.display = "block"; // langsung masuk dashboard
+    } else {
+      loginAlert.textContent = "⚠️ Username atau Password salah!";
+      loginAlert.classList.remove("hidden");
+    }
+  });
+</script>
+
 <!-- =========================
      APP (tersembunyi sampai login)
    ========================= -->
@@ -824,5 +851,6 @@ document.addEventListener('keydown', (e)=> { if(e.key==='Escape'){ document.getE
 </script>
 </body>
 </html>
+
 
 
