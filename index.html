@@ -1,856 +1,329 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Sistem Arsip Kwarran Pule — All-in-One</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    @media print { .no-print{display:none!important} }
-    ::-webkit-scrollbar{height:10px;width:10px}
-    ::-webkit-scrollbar-thumb{background:rgba(100,116,139,.35);border-radius:999px}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Arsip Profesional</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  body { background:#f6f7fb; }
+  .sidebar { width:220px; background:#0b4f7a; color:#fff; height:100vh; position:fixed; top:0; left:0; display:flex; flex-direction:column; padding-top:20px; }
+  .sidebar a { color:#fff; padding:10px 20px; display:block; text-decoration:none; }
+  .sidebar a.active, .sidebar a:hover { background:#123a61; }
+  .content { margin-left:220px; padding:20px; }
+  .table-fixed thead th { position:sticky; top:0; z-index:10; background:#0d6efd; color:#fff; }
+  .btn-yellow { background:#ffc107; color:#000; border:0; }
+  .btn-red { background:#dc3545; color:#fff; border:0; }
+  .small-input { height:36px; padding:6px 10px; }
+  table td, table th { vertical-align:middle; }
+  @media (max-width:900px){ .table-responsive { font-size:13px; } }
+</style>
 </head>
-<body class="min-h-screen bg-slate-100">
+<body>
 
-<!-- =========================
-     LOGIN (Tampilan tetap seperti permintaan)
-   ========================= -->
-<div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
-  <div class="max-w-md w-full bg-white shadow rounded-2xl p-6">
-    <div class="text-center mb-4">
-      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><rect width='80' height='80' rx='12' fill='%23338BCF'/><text x='50%' y='54%' fill='white' font-size='36' text-anchor='middle' font-family='Arial' dy='.35em'>KP</text></svg>" alt="logo" class="mx-auto w-20 h-20 mb-3 rounded"/>
-      <h1 class="text-xl font-bold mb-0">Sistem Arsip</h1>
-      <p class="text-sm text-slate-500">Kwarran Pule</p>
+<div class="sidebar">
+  <div class="text-center fw-bold mb-3">Aplikasi Arsip</div>
+  <a href="#" id="navDashboard" class="active">Dashboard</a>
+  <a href="#" id="navArsip">Data Arsip</a>
+  <a href="#" id="navKode">Kode Arsip</a>
+  <a href="#" id="navBidang">Bidang Arsip</a>
+  <a href="#" id="navDisposisi">Disposisi</a>
+</div>
+
+<div class="content">
+  <!-- Dashboard -->
+  <div id="pageDashboard">
+    <h4>Dashboard</h4>
+    <div class="row g-3 mt-2">
+      <div class="col-sm-3"><div class="p-3 bg-white rounded shadow-sm text-center"><div class="text-muted">Total Arsip</div><div id="statTotal" class="fs-4 fw-bold">0</div></div></div>
+      <div class="col-sm-3"><div class="p-3 bg-white rounded shadow-sm text-center"><div class="text-muted">Surat Masuk</div><div id="statMasuk" class="fs-4 fw-bold">0</div></div></div>
+      <div class="col-sm-3"><div class="p-3 bg-white rounded shadow-sm text-center"><div class="text-muted">Surat Keluar</div><div id="statKeluar" class="fs-4 fw-bold">0</div></div></div>
+      <div class="col-sm-3"><div class="p-3 bg-white rounded shadow-sm text-center"><div class="text-muted">Kategori</div><div id="statKategori" class="fs-4 fw-bold">0</div></div></div>
     </div>
+  </div>
 
-    <div id="loginAlert" class="hidden bg-red-100 text-red-700 p-2 rounded mb-3 text-sm"></div>
+  <!-- Arsip -->
+  <div id="pageArsip" class="d-none">
+    <div class="d-flex justify-content-between mb-2">
+      <h5>Data Arsip</h5>
+      <button class="btn btn-success btn-sm" id="btnAddArsip">+ Tambah Arsip</button>
+    </div>
+    <div class="table-responsive bg-white rounded shadow-sm p-0">
+      <table class="table table-bordered table-fixed mb-0">
+        <thead>
+          <tr>
+            <th>No.</th><th>Kode Box</th><th>Kode Arsip</th><th>Bidang</th><th>Sub Bidang</th><th>Kegiatan</th><th>Tahun</th><th>Status</th><th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tblArsip"></tbody>
+      </table>
+    </div>
+  </div>
 
-    <form id="loginForm" class="space-y-3">
-      <input id="admin" type="admin" placeholder="Username" class="w-full border rounded px-3 py-2" required />
-      <input id="130307" type="130307" placeholder="Password" class="w-full border rounded px-3 py-2" required />
-      <div class="flex gap-2">
-        <button class="flex-1 bg-sky-600 text-white py-2 rounded">Masuk</button>
+  <!-- Kode Arsip -->
+  <div id="pageKode" class="d-none">
+    <div class="d-flex justify-content-between mb-2">
+      <h5>Kode Arsip</h5>
+      <button class="btn btn-success btn-sm" id="btnAddKode">+ Tambah Kode</button>
+    </div>
+    <div class="table-responsive bg-white rounded shadow-sm p-0">
+      <table class="table table-bordered table-fixed mb-0">
+        <thead><tr><th>No</th><th>Kode</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+        <tbody id="tblKode"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Bidang Arsip -->
+  <div id="pageBidang" class="d-none">
+    <div class="d-flex justify-content-between mb-2">
+      <h5>Bidang Arsip</h5>
+      <button class="btn btn-success btn-sm" id="btnAddBidang">+ Tambah Bidang</button>
+    </div>
+    <div class="table-responsive bg-white rounded shadow-sm p-0">
+      <table class="table table-bordered table-fixed mb-0">
+        <thead><tr><th>No</th><th>Bidang</th><th>Keterangan</th><th>Aksi</th></tr></thead>
+        <tbody id="tblBidang"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Disposisi -->
+  <div id="pageDisposisi" class="d-none">
+    <h5>Disposisi Resmi</h5>
+    <form id="formDisposisi" class="mb-3 bg-white p-3 rounded shadow-sm">
+      <div class="row g-2">
+        <div class="col-md-3"><label>Surat</label><select id="dispSelect" class="form-select form-select-sm"></select></div>
+        <div class="col-md-3"><label>Sifat</label><select id="dispSifat" class="form-select form-select-sm"><option>Biasa</option><option>Penting</option><option>Segera</option><option>Rahasia</option></select></div>
+        <div class="col-md-3"><label>Tanggal</label><input id="dispTanggal" type="date" class="form-control form-control-sm"></div>
+        <div class="col-md-3"><label>Diteruskan Kepada</label><input id="dispTo" type="text" class="form-control form-control-sm"></div>
       </div>
+      <div class="mt-2"><label>Instruksi / Informasi</label><textarea id="dispInstruksi" rows="3" class="form-control form-control-sm"></textarea></div>
+      <div class="mt-2 text-end"><button type="button" class="btn btn-success btn-sm" id="btnSaveDisp">Simpan</button></div>
     </form>
-
-    <p class="mt-4 text-xs text-slate-500">selamat datang di sistem arsip kwarran pule.</p>
+    <div class="table-responsive bg-white rounded shadow-sm p-0">
+      <table class="table table-bordered table-sm mb-0">
+        <thead><tr><th>No</th><th>Nomor</th><th>Asal</th><th>Sifat</th><th>Diteruskan</th><th>Tgl</th><th>Aksi</th></tr></thead>
+        <tbody id="dispHistory"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
-  <script>
-  // ======== Username & Password default ========
-  const defaultUser = {
-    username: "admin",     // ubah sesuai kebutuhan
-    password: "130307"     // ubah sesuai kebutuhan
-  };
-
-  const loginForm = document.getElementById("loginForm");
-  const loginAlert = document.getElementById("loginAlert");
-
-  loginForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    if (username === defaultUser.username && password === defaultUser.password) {
-      localStorage.setItem("isLoggedIn", "true");
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("dashboard").style.display = "block"; // langsung masuk dashboard
-    } else {
-      loginAlert.textContent = "⚠️ Username atau Password salah!";
-      loginAlert.classList.remove("hidden");
-    }
-  });
-</script>
-
-<!-- =========================
-     APP (tersembunyi sampai login)
-   ========================= -->
-<div id="app" class="hidden min-h-screen flex">
-
-  <!-- sidebar -->
-  <aside id="sidebar" class="w-72 bg-white border-r hidden md:block">
-    <div class="p-4 border-b flex items-center gap-3">
-      <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' rx='8' fill='%23338BCF'/><text x='50%' y='54%' fill='white' font-size='20' text-anchor='middle' font-family='Arial' dy='.35em'>KP</text></svg>" alt="logo" class="w-12 h-12 rounded"/>
-      <div>
-        <div class="font-bold">Kwarran Pule</div>
-        <div class="text-xs text-slate-500">Sistem Arsip</div>
-      </div>
+<!-- Modal Arsip -->
+<div class="modal" tabindex="-1" id="modalArsip">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="formArsipModal" class="needs-validation" novalidate>
+        <div class="modal-header">
+          <h5 class="modal-title">Tambah / Edit Arsip</h5>
+          <button type="button" class="btn-close" onclick="bsModal.hide()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-2">
+            <input type="hidden" id="editIndex">
+            <div class="col-md-3"><input id="f_kodebox" class="form-control form-control-sm" placeholder="Kode Box" required></div>
+            <div class="col-md-3"><input id="f_kodearsip" class="form-control form-control-sm" placeholder="Kode Arsip" required></div>
+            <div class="col-md-3"><input id="f_bidang" class="form-control form-control-sm" placeholder="Bidang"></div>
+            <div class="col-md-3"><input id="f_subbid" class="form-control form-control-sm" placeholder="Sub Bidang"></div>
+            <div class="col-md-3"><input id="f_kegiatan" class="form-control form-control-sm" placeholder="Kegiatan"></div>
+            <div class="col-md-2"><input id="f_tahun" class="form-control form-control-sm" placeholder="Tahun"></div>
+            <div class="col-md-3"><select id="f_status" class="form-select form-select-sm"><option value="ada">Ada</option><option value="pinjam">Pinjam</option></select></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="bsModal.hide()">Batal</button>
+          <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+        </div>
+      </form>
     </div>
-
-    <nav class="p-4 space-y-1 text-sm">
-      <button class="navBtn w-full text-left px-3 py-2 rounded hover:bg-slate-50" data-page="dashboard">Dashboard</button>
-      <button class="navBtn w-full text-left px-3 py-2 rounded hover:bg-slate-50" data-page="masuk">Surat Masuk</button>
-      <button class="navBtn w-full text-left px-3 py-2 rounded hover:bg-slate-50" data-page="keluar">Surat Keluar</button>
-      <button class="navBtn w-full text-left px-3 py-2 rounded hover:bg-slate-50" data-page="sk">SK</button>
-      <button class="navBtn w-full text-left px-3 py-2 rounded hover:bg-slate-50" data-page="doklain">Dokumen Lain</button>
-      <button class="navBtn w-full text-left px-3 py-2 rounded hover:bg-slate-50" data-page="disposisi">Disposisi</button>
-      <button class="navBtn w-full text-left px-3 py-2 rounded hover:bg-slate-50" data-page="laporan">Laporan</button>
-      <div class="border-t mt-2 pt-2">
-        <button class="navBtn w-full text-left px-3 py-2 rounded hover:bg-slate-50" data-page="pengaturan">Pengaturan & Backup</button>
-      </div>
-    </nav>
-  </aside>
-
-  <!-- main -->
-  <main class="flex-1 min-h-screen flex flex-col">
-    <!-- topbar -->
-    <header class="bg-white border-b p-3 flex items-center justify-between sticky top-0 z-10">
-      <div class="flex items-center gap-4">
-        <button id="mobileMenuBtn" class="md:hidden p-2 rounded bg-slate-100">☰</button>
-        <h2 id="pageTitle" class="text-lg font-semibold">Dashboard</h2>
-      </div>
-      <div class="flex items-center gap-3">
-        <div class="text-sm text-slate-600">Selamat datang, <span id="meName">-</span></div>
-        <button id="logoutBtn" class="px-3 py-1 rounded bg-red-600 text-white text-sm">Keluar</button>
-      </div>
-    </header>
-
-    <!-- content -->
-    <div class="p-6 space-y-6 overflow-auto">
-
-      <!-- Dashboard -->
-      <section id="section-dashboard">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-white p-4 rounded shadow">
-            <div class="text-sm text-slate-500">Surat Masuk</div>
-            <div id="statMasuk" class="text-3xl font-bold">0</div>
-          </div>
-          <div class="bg-white p-4 rounded shadow">
-            <div class="text-sm text-slate-500">Surat Keluar</div>
-            <div id="statKeluar" class="text-3xl font-bold">0</div>
-          </div>
-          <div class="bg-white p-4 rounded shadow">
-            <div class="text-sm text-slate-500">Total Dokumen</div>
-            <div id="statTotal" class="text-3xl font-bold">0</div>
-          </div>
-        </div>
-
-        <div class="mt-6 bg-white p-4 rounded shadow">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="font-semibold">Grafik Jumlah Arsip (6 bulan)</h3>
-            <div class="text-sm text-slate-500">Masuk / Keluar / SK / Dokumen Lain</div>
-          </div>
-          <canvas id="chartArsip" height="120"></canvas>
-        </div>
-      </section>
-
-      <!-- Surat Masuk -->
-      <section id="section-masuk" class="hidden">
-        <div class="flex items-center justify-between">
-          <h3 class="font-semibold text-lg">Surat Masuk</h3>
-          <div class="flex items-center gap-2">
-            <input id="searchMasuk" placeholder="Cari nomor/asal/perihal" class="border rounded px-3 py-1 text-sm" />
-            <button id="addMasukBtn" class="bg-sky-600 text-white px-3 py-1 rounded text-sm">Tambah</button>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded shadow overflow-x-auto mt-3">
-          <table class="w-full text-sm table-auto">
-            <thead><tr class="bg-slate-100"><th class="p-2">#</th><th class="p-2">Nomor</th><th class="p-2">Tanggal</th><th class="p-2">Asal</th><th class="p-2">Perihal</th><th class="p-2">File</th><th class="p-2">Aksi</th></tr></thead>
-            <tbody id="tblMasuk"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Surat Keluar -->
-      <section id="section-keluar" class="hidden">
-        <div class="flex items-center justify-between">
-          <h3 class="font-semibold text-lg">Surat Keluar</h3>
-          <div class="flex items-center gap-2">
-            <input id="searchKeluar" placeholder="Cari nomor/tujuan/perihal" class="border rounded px-3 py-1 text-sm" />
-            <button id="addKeluarBtn" class="bg-sky-600 text-white px-3 py-1 rounded text-sm">Tambah</button>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded shadow overflow-x-auto mt-3">
-          <table class="w-full text-sm table-auto">
-            <thead><tr class="bg-slate-100"><th class="p-2">#</th><th class="p-2">Nomor</th><th class="p-2">Tanggal</th><th class="p-2">Tujuan</th><th class="p-2">Perihal</th><th class="p-2">File</th><th class="p-2">Aksi</th></tr></thead>
-            <tbody id="tblKeluar"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- SK -->
-      <section id="section-sk" class="hidden">
-        <div class="flex items-center justify-between">
-          <h3 class="font-semibold text-lg">SK (Surat Keputusan)</h3>
-          <div class="flex items-center gap-2">
-            <input id="searchSK" placeholder="Cari nomor/isi/keterangan" class="border rounded px-3 py-1 text-sm" />
-            <button id="addSKBtn" class="bg-sky-600 text-white px-3 py-1 rounded text-sm">Tambah</button>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded shadow overflow-x-auto mt-3">
-          <table class="w-full text-sm table-auto">
-            <thead><tr class="bg-slate-100"><th class="p-2">#</th><th class="p-2">Nomor SK</th><th class="p-2">Tanggal</th><th class="p-2">Judul</th><th class="p-2">File</th><th class="p-2">Aksi</th></tr></thead>
-            <tbody id="tblSK"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Dokumen Lain -->
-      <section id="section-doklain" class="hidden">
-        <div class="flex items-center justify-between">
-          <h3 class="font-semibold text-lg">Dokumen Lain</h3>
-          <div class="flex items-center gap-2">
-            <input id="searchDoklain" placeholder="Cari judul/keterangan" class="border rounded px-3 py-1 text-sm" />
-            <button id="addDoklainBtn" class="bg-sky-600 text-white px-3 py-1 rounded text-sm">Tambah</button>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded shadow overflow-x-auto mt-3">
-          <table class="w-full text-sm table-auto">
-            <thead><tr class="bg-slate-100"><th class="p-2">#</th><th class="p-2">Jenis</th><th class="p-2">Judul</th><th class="p-2">Tanggal</th><th class="p-2">File</th><th class="p-2">Aksi</th></tr></thead>
-            <tbody id="tblDoklain"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Disposisi (tetap ada) -->
-      <section id="section-disposisi" class="hidden">
-        <div class="flex items-center justify-between">
-          <h3 class="font-semibold text-lg">Disposisi</h3>
-          <button id="addDispBtn" class="bg-sky-600 text-white px-3 py-1 rounded text-sm">Tambah Disposisi</button>
-        </div>
-        <div class="bg-white p-4 rounded shadow overflow-x-auto mt-3">
-          <table class="w-full text-sm table-auto">
-            <thead><tr class="bg-slate-100"><th class="p-2">#</th><th class="p-2">Referensi</th><th class="p-2">Kepada</th><th class="p-2">Catatan</th><th class="p-2">Status</th><th class="p-2">Aksi</th></tr></thead>
-            <tbody id="tblDisp"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Laporan -->
-      <section id="section-laporan" class="hidden">
-        <h3 class="font-semibold text-lg">Laporan & Cetak</h3>
-        <div class="bg-white p-4 rounded shadow mt-3">
-          <div class="flex flex-wrap gap-3 items-end mb-3">
-            <label class="text-sm">Dari: <input id="lapDari" type="date" class="border rounded px-2 py-1" /></label>
-            <label class="text-sm">Sampai: <input id="lapSampai" type="date" class="border rounded px-2 py-1" /></label>
-            <select id="lapJenis" class="border rounded px-2 py-1">
-              <option value="all">Semua</option>
-              <option value="masuk">Surat Masuk</option>
-              <option value="keluar">Surat Keluar</option>
-              <option value="sk">SK</option>
-              <option value="doklain">Dokumen Lain</option>
-            </select>
-            <button id="btnShowLap" class="bg-emerald-600 text-white px-3 py-1 rounded">Tampilkan</button>
-            <button id="btnPrintLap" class="bg-sky-600 text-white px-3 py-1 rounded">Cetak</button>
-          </div>
-          <div id="lapContent"></div>
-        </div>
-      </section>
-
-      <!-- Pengaturan & Backup -->
-      <section id="section-pengaturan" class="hidden">
-        <h3 class="font-semibold text-lg">Pengaturan & Backup</h3>
-        <div class="bg-white p-4 rounded shadow mt-3 space-y-3">
-          <div class="flex gap-2">
-            <button id="exportJson" class="px-3 py-1 bg-sky-600 text-white rounded">Export JSON</button>
-            <button id="exportCsv" class="px-3 py-1 bg-slate-600 text-white rounded">Export CSV</button>
-            <label class="flex items-center gap-2">Import: <input id="importFile" type="file" accept=".json,.csv" class="ml-2 text-sm" /></label>
-          </div>
-          <div class="flex gap-2">
-            <button id="btnReset" class="px-3 py-1 bg-red-600 text-white rounded">Reset Data</button>
-            <button id="btnSeed" class="px-3 py-1 bg-amber-500 text-black rounded">Isi Data Contoh</button>
-          </div>
-        </div>
-      </section>
-
-    </div> <!-- end content -->
-  </main>
-</div> <!-- end app -->
-
-<!-- MODAL: Form (reused for all types) -->
-<div id="modalForm" class="fixed inset-0 hidden items-center justify-center z-50">
-  <div class="absolute inset-0 bg-black/40"></div>
-  <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-4 relative z-10">
-    <div class="flex justify-between items-center mb-3">
-      <h4 id="modalTitle" class="font-semibold">Form</h4>
-      <button id="modalClose" class="text-slate-600">✕</button>
-    </div>
-    <form id="formMain" class="space-y-3">
-      <input type="hidden" id="formType" />
-      <input type="hidden" id="formId" />
-      <div id="formFields" class="grid grid-cols-2 gap-3">
-        <!-- fields injected dynamically -->
-      </div>
-      <div class="flex justify-end gap-2">
-        <button type="button" id="formCancel" class="px-3 py-2 rounded border">Batal</button>
-        <button class="px-3 py-2 rounded bg-sky-600 text-white">Simpan</button>
-      </div>
-    </form>
   </div>
 </div>
 
-<!-- MODAL: Disposisi -->
-<div id="modalDisp" class="fixed inset-0 hidden items-center justify-center z-50">
-  <div class="absolute inset-0 bg-black/40"></div>
-  <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-4 relative z-10">
-    <div class="flex justify-between items-center mb-3">
-      <h4 class="font-semibold">Tambah Disposisi</h4>
-      <button id="modalDispClose" class="text-slate-600">✕</button>
-    </div>
-    <form id="formDisp" class="space-y-3">
-      <label class="text-sm">Pilih Referensi
-        <select id="dispRef" class="border rounded px-2 py-1 w-full"></select>
-      </label>
-      <label class="text-sm">Kepada
-        <input id="dispTo" class="border rounded px-2 py-1 w-full" />
-      </label>
-      <label class="text-sm">Catatan
-        <textarea id="dispNote" rows="3" class="border rounded px-2 py-1 w-full"></textarea>
-      </label>
-      <label class="text-sm">Status
-        <select id="dispStatus" class="border rounded px-2 py-1 w-full"><option value="terkirim">terkirim</option><option value="ditindaklanjuti">ditindaklanjuti</option><option value="selesai">selesai</option></select>
-      </label>
-      <div class="flex justify-end gap-2">
-        <button type="button" id="dispCancel" class="px-3 py-2 rounded border">Batal</button>
-        <button class="px-3 py-2 rounded bg-sky-600 text-white">Simpan Disposisi</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div id="toast" class="fixed right-4 bottom-4 hidden z-50">
-  <div id="toastMsg" class="bg-black text-white px-4 py-2 rounded shadow"></div>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-/* =========================
-   State & helpers
-   ========================= */
-const STORAGE_KEY = 'kwarran_arsip_full_v3';
-function defaultState(){
-  return {
-    users: [
-      {id:'u1', username:'admin', password:'admin123', fullname:'Administrator', role:'admin'},
-      {id:'u2', username:'operator', password:'op123', fullname:'Operator', role:'operator'},
-      {id:'u3', username:'viewer', password:'view123', fullname:'Viewer', role:'viewer'}
-    ],
-    suratMasuk: [],
-    suratKeluar: [],
-    sk: [],
-    doklain: [],
-    disposisi: []
-  };
+// ---------- Data ----------
+const STORAGE_ARSIP = 'arsip_v1';
+const STORAGE_DISP = 'disp_v1';
+let arsip = JSON.parse(localStorage.getItem(STORAGE_ARSIP) || '[]');
+let disposisi = JSON.parse(localStorage.getItem(STORAGE_DISP) || '[]');
+let kodeList = JSON.parse(localStorage.getItem('kode_v1')||'[]');
+let bidangList = JSON.parse(localStorage.getItem('bidang_v1')||'[]');
+
+// ---------- Modal ----------
+const bsModal = new bootstrap.Modal(document.getElementById('modalArsip'), {backdrop:'static'});
+
+// ---------- Helpers ----------
+function saveAll(){ localStorage.setItem(STORAGE_ARSIP, JSON.stringify(arsip)); }
+function saveDisp(){ localStorage.setItem(STORAGE_DISP, JSON.stringify(disposisi)); }
+function escapeHtml(s){ return s?String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;') : ''; }
+
+// ---------- Page Control ----------
+function hideAllPages(){
+  document.getElementById('pageDashboard').classList.add('d-none');
+  document.getElementById('pageArsip').classList.add('d-none');
+  document.getElementById('pageKode').classList.add('d-none');
+  document.getElementById('pageBidang').classList.add('d-none');
+  document.getElementById('pageDisposisi').classList.add('d-none');
+  document.querySelectorAll('.sidebar a').forEach(a=>a.classList.remove('active'));
 }
-let state = loadState() || defaultState();
-let currentUser = null;
 
-function loadState(){ try{ const s=localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):null; }catch(e){console.error(e); return null;} }
-function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-function uid(pref='id'){ return pref + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
-function showToast(msg, t=2000){ const tdiv=document.getElementById('toast'); const m=document.getElementById('toastMsg'); m.textContent=msg; tdiv.classList.remove('hidden'); setTimeout(()=>tdiv.classList.add('hidden'), t); }
-function readFileAsBase64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
-function formatDate(d){ if(!d) return ''; const dt=new Date(d); if(isNaN(dt)) return d; return dt.toLocaleDateString('id-ID'); }
-function escape(s){ if(!s) return ''; return s.toString().replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function showPage(page){
+  hideAllPages();
+  document.getElementById(page).classList.remove('d-none');
+  document.getElementById('nav'+page.charAt(0).toUpperCase()+page.slice(1)).classList.add('active');
+  if(page==='pageArsip') renderArsip();
+  if(page==='pageKode') renderKode();
+  if(page==='pageBidang') renderBidang();
+  if(page==='pageDisposisi') renderDispSelect(), renderDispHistory();
+  if(page==='pageDashboard') updateStats();
+}
 
-/* =========================
-   Auth: login/logout
-   ========================= */
-const loginScreen = document.getElementById('loginScreen');
-const app = document.getElementById('app');
-const meName = document.getElementById('meName');
-const pageTitle = document.getElementById('pageTitle');
+// ---------- Event Listeners ----------
+document.getElementById('navDashboard').addEventListener('click', ()=>showPage('pageDashboard'));
+document.getElementById('navArsip').addEventListener('click', ()=>showPage('pageArsip'));
+document.getElementById('navKode').addEventListener('click', ()=>showPage('pageKode'));
+document.getElementById('navBidang').addEventListener('click', ()=>showPage('pageBidang'));
+document.getElementById('navDisposisi').addEventListener('click', ()=>showPage('pageDisposisi'));
 
-function renderUser(){ meName.textContent = currentUser ? (currentUser.fullname || currentUser.username) : '-'; }
-
-document.getElementById('demoBtn').addEventListener('click', ()=>{ document.getElementById('loginUsername').value='admin'; document.getElementById('loginPassword').value='admin123'; });
-
-document.getElementById('loginForm').addEventListener('submit', (e)=> {
+document.getElementById('btnAddArsip').addEventListener('click', ()=>openArsipModal());
+document.getElementById('formArsipModal').addEventListener('submit', e=>{
   e.preventDefault();
-  const u = document.getElementById('loginUsername').value.trim();
-  const p = document.getElementById('loginPassword').value;
-  const user = state.users.find(x=>x.username===u && x.password===p);
-  if(user){ currentUser = user; renderUser(); loginScreen.classList.add('hidden'); app.classList.remove('hidden'); navTo('dashboard'); refreshAll(); showToast('Login berhasil'); }
-  else { const a=document.getElementById('loginAlert'); a.className='bg-red-100 text-red-700 p-2 rounded mb-3'; a.textContent='Username atau password salah'; setTimeout(()=>a.className='hidden',3000); }
-});
-
-document.getElementById('logoutBtn').addEventListener('click', ()=> {
-  currentUser = null;
-  app.classList.add('hidden');
-  loginScreen.classList.remove('hidden');
-  document.getElementById('loginUsername').value=''; document.getElementById('loginPassword').value='';
-  renderUser();
-});
-
-/* Mobile menu */
-document.getElementById('mobileMenuBtn').addEventListener('click', ()=> document.getElementById('sidebar').classList.toggle('hidden'));
-
-/* Navigation */
-document.querySelectorAll('.navBtn').forEach(b => b.addEventListener('click', (e)=> navTo(e.target.dataset.page)));
-function navTo(page){ navToPage(page); }
-
-/* wrapper to handle page visibility and specific renders */
-function navToPage(page){
-  pageTitle.textContent = ({dashboard:'Dashboard',masuk:'Surat Masuk',keluar:'Surat Keluar',sk:'SK',doklain:'Dokumen Lain',disposisi:'Disposisi',laporan:'Laporan',pengaturan:'Pengaturan & Backup'}[page] || 'Dashboard');
-  document.querySelectorAll('section[id^="section-"]').forEach(s=>s.classList.add('hidden'));
-  const target = document.getElementById('section-' + page);
-  if(target) target.classList.remove('hidden');
-  // render specifics
-  if(page==='dashboard') { renderChart(); refreshStats(); }
-  if(page==='masuk') renderMasuk();
-  if(page==='keluar') renderKeluar();
-  if(page==='sk') renderSK();
-  if(page==='doklain') renderDoklain();
-  if(page==='disposisi') renderDisposisi();
-  if(page==='pengaturan') {} // future
-}
-
-/* =========================
-   Stats & Chart
-   ========================= */
-let chart = null;
-function refreshStats(){
-  document.getElementById('statMasuk').textContent = state.suratMasuk.length;
-  document.getElementById('statKeluar').textContent = state.suratKeluar.length;
-  const total = state.suratMasuk.length + state.suratKeluar.length + state.sk.length + state.doklain.length;
-  document.getElementById('statTotal').textContent = total;
-}
-function renderChart(){
-  const ctx = document.getElementById('chartArsip').getContext('2d');
-  // last 6 months labels
-  const labels = [];
-  for(let i=5;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); labels.push(d.toLocaleString('id-ID',{month:'short',year:'numeric'})); }
-  const countPerMonth = (arr) => labels.map(l => arr.filter(s => { const d=new Date(s.tanggal || s.createdAt || 0); if(isNaN(d)) return false; return d.toLocaleString('id-ID',{month:'short',year:'numeric'})===l; }).length);
-  const m = countPerMonth(state.suratMasuk);
-  const k = countPerMonth(state.suratKeluar);
-  const s = countPerMonth(state.sk);
-  const d = countPerMonth(state.doklain);
-  if(chart) chart.destroy();
-  chart = new Chart(ctx, { type:'bar', data:{ labels, datasets:[ {label:'Masuk', data:m, backgroundColor:'rgba(56,189,248,0.8)'}, {label:'Keluar', data:k, backgroundColor:'rgba(16,185,129,0.8)'}, {label:'SK', data:s, backgroundColor:'rgba(249,115,22,0.8)'}, {label:'Dok Lain', data:d, backgroundColor:'rgba(168,85,247,0.8)'} ] }, options:{responsive:true, plugins:{legend:{position:'top'}} } });
-}
-
-/* =========================
-   Render Tables & CRUD helpers
-   ========================= */
-
-/* --- SURAT MASUK --- */
-document.getElementById('addMasukBtn').addEventListener('click', ()=> openForm('masuk','add'));
-document.getElementById('searchMasuk').addEventListener('input',(e)=> renderMasuk(e.target.value));
-
-function renderMasuk(q=''){
-  const tbody = document.getElementById('tblMasuk'); tbody.innerHTML='';
-  const rows = state.suratMasuk.filter(r => { if(!q) return true; const t=q.toLowerCase(); return (r.nomor||'').toLowerCase().includes(t) || (r.asal||'').toLowerCase().includes(t) || (r.perihal||'').toLowerCase().includes(t); });
-  rows.forEach((r,i) => {
-    const tr = document.createElement('tr'); tr.className='border-t';
-    tr.innerHTML = `<td class="p-2">${i+1}</td><td class="p-2">${escape(r.nomor)}</td><td class="p-2">${formatDate(r.tanggal)}</td><td class="p-2">${escape(r.asal)}</td><td class="p-2">${escape(r.perihal)}</td><td class="p-2">${r.file?`<a href="${r.file}" target="_blank" class="text-sky-600">Lihat</a>`:''}</td><td class="p-2">
-      <button class="text-xs px-2 py-1 rounded border mr-1" onclick="viewDoc('masuk','${r.id}')">Lihat</button>
-      <button class="text-xs px-2 py-1 rounded border mr-1" onclick="openForm('masuk','edit','${r.id}')">Edit</button>
-      <button class="text-xs px-2 py-1 rounded border text-red-600" onclick="deleteDoc('masuk','${r.id}')">Hapus</button>
-      <button class="text-xs px-2 py-1 rounded border" onclick="openDispFrom('${'masuk'}','${r.id}')">Disposisi</button>
-    </td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-/* --- SURAT KELUAR --- */
-document.getElementById('addKeluarBtn').addEventListener('click', ()=> openForm('keluar','add'));
-document.getElementById('searchKeluar').addEventListener('input',(e)=> renderKeluar(e.target.value));
-
-function renderKeluar(q=''){
-  const tbody = document.getElementById('tblKeluar'); tbody.innerHTML='';
-  const rows = state.suratKeluar.filter(r => { if(!q) return true; const t=q.toLowerCase(); return (r.nomor||'').toLowerCase().includes(t) || (r.tujuan||'').toLowerCase().includes(t) || (r.perihal||'').toLowerCase().includes(t); });
-  rows.forEach((r,i)=> {
-    const tr=document.createElement('tr'); tr.className='border-t';
-    tr.innerHTML = `<td class="p-2">${i+1}</td><td class="p-2">${escape(r.nomor)}</td><td class="p-2">${formatDate(r.tanggal)}</td><td class="p-2">${escape(r.tujuan)}</td><td class="p-2">${escape(r.perihal)}</td><td class="p-2">${r.file?`<a href="${r.file}" target="_blank" class="text-sky-600">Lihat</a>`:''}</td><td class="p-2">
-      <button class="text-xs px-2 py-1 rounded border mr-1" onclick="viewDoc('keluar','${r.id}')">Lihat</button>
-      <button class="text-xs px-2 py-1 rounded border mr-1" onclick="openForm('keluar','edit','${r.id}')">Edit</button>
-      <button class="text-xs px-2 py-1 rounded border text-red-600" onclick="deleteDoc('keluar','${r.id}')">Hapus</button>
-      <button class="text-xs px-2 py-1 rounded border" onclick="openDispFrom('${'keluar'}','${r.id}')">Disposisi</button>
-    </td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-/* --- SK --- */
-document.getElementById('addSKBtn').addEventListener('click', ()=> openForm('sk','add'));
-document.getElementById('searchSK').addEventListener('input',(e)=> renderSK(e.target.value));
-
-function renderSK(q=''){
-  const tbody=document.getElementById('tblSK'); tbody.innerHTML='';
-  const rows = state.sk.filter(r=>{ if(!q) return true; const t=q.toLowerCase(); return (r.nomor||'').toLowerCase().includes(t) || (r.judul||'').toLowerCase().includes(t) || (r.keterangan||'').toLowerCase().includes(t); });
-  rows.forEach((r,i)=> {
-    const tr=document.createElement('tr'); tr.className='border-t';
-    tr.innerHTML = `<td class="p-2">${i+1}</td><td class="p-2">${escape(r.nomor)}</td><td class="p-2">${formatDate(r.tanggal)}</td><td class="p-2">${escape(r.judul)}</td><td class="p-2">${r.file?`<a href="${r.file}" target="_blank" class="text-sky-600">Lihat</a>`:''}</td><td class="p-2">
-      <button class="text-xs px-2 py-1 rounded border mr-1" onclick="viewDoc('sk','${r.id}')">Lihat</button>
-      <button class="text-xs px-2 py-1 rounded border mr-1" onclick="openForm('sk','edit','${r.id}')">Edit</button>
-      <button class="text-xs px-2 py-1 rounded border text-red-600" onclick="deleteDoc('sk','${r.id}')">Hapus</button>
-    </td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-/* --- DOKUMEN LAIN --- */
-document.getElementById('addDoklainBtn').addEventListener('click', ()=> openForm('doklain','add'));
-document.getElementById('searchDoklain').addEventListener('input',(e)=> renderDoklain(e.target.value));
-
-function renderDoklain(q=''){
-  const tbody=document.getElementById('tblDoklain'); tbody.innerHTML='';
-  const rows = state.doklain.filter(r=>{ if(!q) return true; const t=q.toLowerCase(); return (r.jenis||'').toLowerCase().includes(t) || (r.judul||'').toLowerCase().includes(t) || (r.keterangan||'').toLowerCase().includes(t); });
-  rows.forEach((r,i)=> {
-    const tr=document.createElement('tr'); tr.className='border-t';
-    tr.innerHTML = `<td class="p-2">${i+1}</td><td class="p-2">${escape(r.jenis)}</td><td class="p-2">${escape(r.judul)}</td><td class="p-2">${formatDate(r.tanggal)}</td><td class="p-2">${r.file?`<a href="${r.file}" target="_blank" class="text-sky-600">Lihat</a>`:''}</td><td class="p-2">
-      <button class="text-xs px-2 py-1 rounded border mr-1" onclick="viewDoc('doklain','${r.id}')">Lihat</button>
-      <button class="text-xs px-2 py-1 rounded border mr-1" onclick="openForm('doklain','edit','${r.id}')">Edit</button>
-      <button class="text-xs px-2 py-1 rounded border text-red-600" onclick="deleteDoc('doklain','${r.id}')">Hapus</button>
-      <button class="text-xs px-2 py-1 rounded border" onclick="openDispFrom('doklain','${r.id}')">Disposisi</button>
-    </td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-/* --- DISPOSISI (tetap ada) --- */
-document.getElementById('addDispBtn').addEventListener('click', ()=> openDispModal());
-function renderDisposisi(){
-  renderDisposisi(); // placeholder to avoid unused function warning
-}
-function renderDisposisi(){
-  const tbody=document.getElementById('tblDisp'); tbody.innerHTML='';
-  state.disposisi.forEach((d,i)=>{
-    // find referenced doc info
-    let refText = '-';
-    if(d.refType && d.refId){
-      const arr = (d.refType==='masuk')?state.suratMasuk:(d.refType==='keluar')?state.suratKeluar:(d.refType==='sk')?state.sk:state.doklain;
-      const doc = arr.find(x=>x.id===d.refId);
-      if(doc){
-        if(d.refType==='sk') refText = `${doc.nomor} — ${doc.judul||''}`;
-        else if(d.refType==='doklain') refText = `${doc.jenis} — ${doc.judul||''}`;
-        else refText = `${doc.nomor || doc.judul || '-'}`
-      }
-    }
-    const tr=document.createElement('tr'); tr.className='border-t';
-    tr.innerHTML = `<td class="p-2">${i+1}</td><td class="p-2">${escape(refText)} <div class="text-xs text-slate-400">(${d.refType})</div></td><td class="p-2">${escape(d.to)}</td><td class="p-2">${escape(d.note)}</td><td class="p-2">${escape(d.status)}</td><td class="p-2">
-      <button class="text-xs px-2 py-1 rounded border mr-1" onclick="editDisp('${d.id}')">Edit</button>
-      <button class="text-xs px-2 py-1 rounded border text-red-600" onclick="deleteDisp('${d.id}')">Hapus</button>
-    </td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-/* =========================
-   Generic form open/save/delete for each type
-   types: masuk, keluar, sk, doklain
-   ========================= */
-const modal = document.getElementById('modalForm');
-const modalTitle = document.getElementById('modalTitle');
-const formFields = document.getElementById('formFields');
-const formMain = document.getElementById('formMain');
-document.getElementById('modalClose').addEventListener('click', ()=> modal.classList.add('hidden'));
-document.getElementById('formCancel').addEventListener('click', ()=> modal.classList.add('hidden'));
-
-async function openForm(type, mode='add', id=''){
-  document.getElementById('formType').value = type;
-  document.getElementById('formId').value = id || '';
-  modalTitle.textContent = (mode==='add' ? 'Tambah ' : 'Edit ') + ({masuk:'Surat Masuk',keluar:'Surat Keluar',sk:'SK',doklain:'Dokumen Lain'}[type] || type);
-  // build fields based on type
-  formFields.innerHTML = '';
-  if(type==='masuk'){
-    formFields.innerHTML = `
-      <label class="col-span-2 text-sm">Nomor<input id="f_nomor" class="border rounded px-2 py-1 w-full" required></label>
-      <label class="text-sm">Tanggal<input id="f_tanggal" type="date" class="border rounded px-2 py-1 w-full" required></label>
-      <label class="text-sm">Asal<input id="f_asal" class="border rounded px-2 py-1 w-full"></label>
-      <label class="col-span-2 text-sm">Perihal<textarea id="f_perihal" rows="3" class="border rounded px-2 py-1 w-full"></textarea></label>
-      <label class="col-span-2 text-sm">File<input id="f_file" type="file" accept=".pdf,image/*" class="w-full" /></label>
-    `;
-  } else if(type==='keluar'){
-    formFields.innerHTML = `
-      <label class="col-span-2 text-sm">Nomor<input id="f_nomor" class="border rounded px-2 py-1 w-full" required></label>
-      <label class="text-sm">Tanggal<input id="f_tanggal" type="date" class="border rounded px-2 py-1 w-full" required></label>
-      <label class="text-sm">Tujuan<input id="f_tujuan" class="border rounded px-2 py-1 w-full"></label>
-      <label class="col-span-2 text-sm">Perihal<textarea id="f_perihal" rows="3" class="border rounded px-2 py-1 w-full"></textarea></label>
-      <label class="col-span-2 text-sm">File<input id="f_file" type="file" accept=".pdf,image/*" class="w-full" /></label>
-    `;
-  } else if(type==='sk'){
-    formFields.innerHTML = `
-      <label class="col-span-2 text-sm">Nomor SK<input id="f_nomor" class="border rounded px-2 py-1 w-full" required></label>
-      <label class="text-sm">Tanggal<input id="f_tanggal" type="date" class="border rounded px-2 py-1 w-full" required></label>
-      <label class="col-span-2 text-sm">Judul<input id="f_judul" class="border rounded px-2 py-1 w-full" /></label>
-      <label class="col-span-2 text-sm">Keterangan<textarea id="f_ket" rows="3" class="border rounded px-2 py-1 w-full"></textarea></label>
-      <label class="col-span-2 text-sm">File SK<input id="f_file" type="file" accept=".pdf,image/*" class="w-full" /></label>
-    `;
-  } else if(type==='doklain'){
-    formFields.innerHTML = `
-      <label class="text-sm">Jenis<input id="f_jenis" class="border rounded px-2 py-1 w-full" required></label>
-      <label class="col-span-2 text-sm">Judul<input id="f_judul" class="border rounded px-2 py-1 w-full" /></label>
-      <label class="text-sm">Tanggal<input id="f_tanggal" type="date" class="border rounded px-2 py-1 w-full" /></label>
-      <label class="col-span-2 text-sm">Keterangan<textarea id="f_ket" rows="3" class="border rounded px-2 py-1 w-full"></textarea></label>
-      <label class="col-span-2 text-sm">File<input id="f_file" type="file" accept=".pdf,image/*" class="w-full" /></label>
-    `;
-  }
-
-  // if edit populate
-  if(mode==='edit' && id){
-    let arr = (type==='masuk')? state.suratMasuk : (type==='keluar')? state.suratKeluar : (type==='sk')? state.sk : state.doklain;
-    const obj = arr.find(x=>x.id===id);
-    if(obj){
-      // small delay so inputs exist
-      setTimeout(()=> {
-        if(document.getElementById('f_nomor')) document.getElementById('f_nomor').value = obj.nomor || obj.nomor_sk || obj.nomor || '';
-        if(document.getElementById('f_tanggal')) document.getElementById('f_tanggal').value = obj.tanggal || '';
-        if(document.getElementById('f_asal')) document.getElementById('f_asal').value = obj.asal || '';
-        if(document.getElementById('f_tujuan')) document.getElementById('f_tujuan').value = obj.tujuan || '';
-        if(document.getElementById('f_perihal')) document.getElementById('f_perihal').value = obj.perihal || '';
-        if(document.getElementById('f_judul')) document.getElementById('f_judul').value = obj.judul || '';
-        if(document.getElementById('f_ket')) document.getElementById('f_ket').value = obj.keterangan || obj.ket || '';
-        if(document.getElementById('f_jenis')) document.getElementById('f_jenis').value = obj.jenis || '';
-      }, 50);
-    }
-  }
-
-  modal.classList.remove('hidden');
-}
-
-document.getElementById('formMain').addEventListener('submit', async (e)=> {
-  e.preventDefault();
-  const type = document.getElementById('formType').value;
-  const id = document.getElementById('formId').value;
-  // get common fields where exist
-  const fileInput = document.getElementById('f_file');
-  let fileData = null;
-  if(fileInput && fileInput.files && fileInput.files[0]) { try{ fileData = await readFileAsBase64(fileInput.files[0]); }catch(e){ console.warn(e); } }
-
-  if(type==='masuk'){
-    const nomor = document.getElementById('f_nomor').value.trim();
-    const tanggal = document.getElementById('f_tanggal').value;
-    const asal = document.getElementById('f_asal').value.trim();
-    const perihal = document.getElementById('f_perihal').value.trim();
-    if(id){ const obj=state.suratMasuk.find(x=>x.id===id); if(obj){ obj.nomor=nomor; obj.tanggal=tanggal; obj.asal=asal; obj.perihal=perihal; if(fileData) obj.file=fileData; obj.updatedAt=new Date().toISOString(); showToast('Surat masuk diperbarui'); } }
-    else { state.suratMasuk.unshift({id:uid('s'), nomor, tanggal, asal, perihal, file:fileData, createdAt:new Date().toISOString()}); showToast('Surat masuk tersimpan'); }
-  } else if(type==='keluar'){
-    const nomor = document.getElementById('f_nomor').value.trim();
-    const tanggal = document.getElementById('f_tanggal').value;
-    const tujuan = document.getElementById('f_tujuan').value.trim();
-    const perihal = document.getElementById('f_perihal').value.trim();
-    if(id){ const obj=state.suratKeluar.find(x=>x.id===id); if(obj){ obj.nomor=nomor; obj.tanggal=tanggal; obj.tujuan=tujuan; obj.perihal=perihal; if(fileData) obj.file=fileData; obj.updatedAt=new Date().toISOString(); showToast('Surat keluar diperbarui'); } }
-    else { state.suratKeluar.unshift({id:uid('s'), nomor, tanggal, tujuan, perihal, file:fileData, createdAt:new Date().toISOString()}); showToast('Surat keluar tersimpan'); }
-  } else if(type==='sk'){
-    const nomor = document.getElementById('f_nomor').value.trim();
-    const tanggal = document.getElementById('f_tanggal').value;
-    const judul = document.getElementById('f_judul').value.trim();
-    const ket = document.getElementById('f_ket').value.trim();
-    if(id){ const obj=state.sk.find(x=>x.id===id); if(obj){ obj.nomor=nomor; obj.tanggal=tanggal; obj.judul=judul; obj.keterangan=ket; if(fileData) obj.file=fileData; obj.updatedAt=new Date().toISOString(); showToast('SK diperbarui'); } }
-    else { state.sk.unshift({id:uid('sk'), nomor, tanggal, judul, keterangan:ket, file:fileData, createdAt:new Date().toISOString()}); showToast('SK tersimpan'); }
-  } else if(type==='doklain'){
-    const jenis = document.getElementById('f_jenis').value.trim();
-    const judul = document.getElementById('f_judul').value.trim();
-    const tanggal = document.getElementById('f_tanggal').value;
-    const ket = document.getElementById('f_ket').value.trim();
-    if(id){ const obj=state.doklain.find(x=>x.id===id); if(obj){ obj.jenis=jenis; obj.judul=judul; obj.tanggal=tanggal; obj.keterangan=ket; if(fileData) obj.file=fileData; obj.updatedAt=new Date().toISOString(); showToast('Dokumen diperbarui'); } }
-    else { state.doklain.unshift({id:uid('d'), jenis, judul, tanggal, keterangan:ket, file:fileData, createdAt:new Date().toISOString()}); showToast('Dokumen tersimpan'); }
-  }
-
-  saveState(); refreshAll(); modal.classList.add('hidden');
-});
-
-/* Delete document */
-function deleteDoc(type,id){
-  if(!confirm('Hapus data?')) return;
-  if(type==='masuk') state.suratMasuk = state.suratMasuk.filter(x=>x.id!==id);
-  else if(type==='keluar') state.suratKeluar = state.suratKeluar.filter(x=>x.id!==id);
-  else if(type==='sk') state.sk = state.sk.filter(x=>x.id!==id);
-  else if(type==='doklain') state.doklain = state.doklain.filter(x=>x.id!==id);
-  // also remove disposisi referencing it
-  state.disposisi = state.disposisi.filter(d=> !(d.refType===type && d.refId===id) );
-  saveState(); refreshAll(); showToast('Data dihapus');
-}
-
-/* View document (simple preview via alert or new tab for file) */
-function viewDoc(type,id){
-  let arr = (type==='masuk')?state.suratMasuk:(type==='keluar')?state.suratKeluar:(type==='sk')?state.sk:state.doklain;
-  const obj = arr.find(x=>x.id===id);
-  if(!obj) return showToast('Data tidak ditemukan');
-  if(obj.file){
-    // open file in new tab (base64)
-    const w = window.open(); w.document.write(`<iframe src="${obj.file}" frameborder="0" style="width:100%;height:100vh"></iframe>`);
-  } else {
-    let txt = '';
-    if(type==='sk') txt = `Nomor: ${obj.nomor}\nTanggal: ${formatDate(obj.tanggal)}\nJudul: ${obj.judul}\nKeterangan: ${obj.keterangan||''}`;
-    else if(type==='doklain') txt = `Jenis: ${obj.jenis}\nJudul: ${obj.judul}\nTanggal: ${formatDate(obj.tanggal)}\nKeterangan: ${obj.keterangan||''}`;
-    else txt = `Nomor: ${obj.nomor}\nTanggal: ${formatDate(obj.tanggal)}\nPerihal: ${obj.perihal||''}\nAsal/Tujuan: ${obj.asal||obj.tujuan||''}`;
-    alert(txt);
-  }
-}
-
-/* =========================
-   Disposisi: add/edit/delete (remains)
-   ========================= */
-function openDispModal(selectedRef){
-  // fill reference select with all items grouped by type
-  const sel = document.getElementById('dispRef'); sel.innerHTML='';
-  const makeOpt = (label, arr, typeKey, textfn) => {
-    if(arr.length===0) return;
-    const optgroup = document.createElement('optgroup'); optgroup.label = label;
-    arr.forEach(x=>{ const o=document.createElement('option'); o.value = `${typeKey}|${x.id}`; o.text = textfn(x); optgroup.appendChild(o); });
-    sel.appendChild(optgroup);
+  const idx = document.getElementById('editIndex').value;
+  const data = {
+    kodebox: document.getElementById('f_kodebox').value.trim(),
+    kodearsip: document.getElementById('f_kodearsip').value.trim(),
+    bidang: document.getElementById('f_bidang').value.trim(),
+    subbid: document.getElementById('f_subbid').value.trim(),
+    kegiatan: document.getElementById('f_kegiatan').value.trim(),
+    tahun: document.getElementById('f_tahun').value.trim(),
+    status: document.getElementById('f_status').value
   };
-  makeOpt('Surat Masuk', state.suratMasuk, 'masuk', x=>`${x.nomor} — ${x.perihal||x.asal||''}`);
-  makeOpt('Surat Keluar', state.suratKeluar, 'keluar', x=>`${x.nomor} — ${x.perihal||x.tujuan||''}`);
-  makeOpt('SK', state.sk, 'sk', x=>`${x.nomor} — ${x.judul||''}`);
-  makeOpt('Dokumen Lain', state.doklain, 'doklain', x=>`${x.jenis} — ${x.judul||''}`);
-  if(selectedRef) sel.value = selectedRef;
-  document.getElementById('dispTo').value=''; document.getElementById('dispNote').value=''; document.getElementById('dispStatus').value='terkirim';
-  document.getElementById('modalDisp').classList.remove('hidden');
-}
-function openDispFrom(type, id){ openDispModal(`${type}|${id}`); }
-
-document.getElementById('modalDispClose').addEventListener('click', ()=> document.getElementById('modalDisp').classList.add('hidden'));
-document.getElementById('dispCancel').addEventListener('click', ()=> document.getElementById('modalDisp').classList.add('hidden'));
-
-document.getElementById('formDisp').addEventListener('submit', (e)=>{
-  e.preventDefault();
-  const val = document.getElementById('dispRef').value;
-  if(!val) return showToast('Pilih referensi surat/dokumen terlebih dahulu');
-  const [refType, refId] = val.split('|');
-  const to = document.getElementById('dispTo').value.trim();
-  const note = document.getElementById('dispNote').value.trim();
-  const status = document.getElementById('dispStatus').value;
-  state.disposisi.unshift({ id: uid('d'), refType, refId, to, note, status, createdAt: new Date().toISOString() });
-  saveState(); refreshAll(); document.getElementById('modalDisp').classList.add('hidden'); showToast('Disposisi tersimpan');
+  if(idx==='') arsip.push(data); else arsip[Number(idx)] = data;
+  saveAll();
+  bsModal.hide();
+  renderArsip();
 });
 
-function editDisp(id){
-  const d = state.disposisi.find(x=>x.id===id);
-  if(!d) return;
-  openDispModal(`${d.refType}|${d.refId}`);
-  document.getElementById('dispTo').value = d.to; document.getElementById('dispNote').value = d.note; document.getElementById('dispStatus').value = d.status;
-  // remove old and will re-add on save
-  state.disposisi = state.disposisi.filter(x=>x.id!==id);
-}
-function deleteDisp(id){ if(!confirm('Hapus disposisi?')) return; state.disposisi = state.disposisi.filter(x=>x.id!==id); saveState(); refreshAll(); showToast('Disposisi dihapus'); }
-
-/* =========================
-   Laporan / Print
-   ========================= */
-document.getElementById('btnShowLap').addEventListener('click', showReport);
-document.getElementById('btnPrintLap').addEventListener('click', ()=> window.print());
-
-function showReport(){
-  const dari = document.getElementById('lapDari').value;
-  const sampai = document.getElementById('lapSampai').value;
-  const jenis = document.getElementById('lapJenis').value;
-  const cont = document.getElementById('lapContent'); cont.innerHTML = '';
-
-  const filterByDate = (item) => {
-    if(!dari && !sampai) return true;
-    const dt = new Date(item.tanggal || item.createdAt || 0);
-    if(dari){ const d0=new Date(dari); if(dt < d0) return false; }
-    if(sampai){ const d1=new Date(sampai); d1.setDate(d1.getDate()+1); if(dt >= d1) return false; }
-    return true;
+document.getElementById('btnSaveDisp').addEventListener('click', ()=>{
+  const idx = document.getElementById('dispSelect').value;
+  if(idx==='') return alert('Pilih surat');
+  const rec = {
+    nomor: arsip[idx].kodearsip || '',
+    asal: arsip[idx].bidang || '',
+    sifat: document.getElementById('dispSifat').value,
+    tgl: document.getElementById('dispTanggal').value||new Date().toISOString().slice(0,10),
+    diteruskan: document.getElementById('dispTo').value,
+    instruksi: document.getElementById('dispInstruksi').value
   };
+  disposisi.unshift(rec);
+  saveDisp();
+  renderDispHistory();
+  alert('Disposisi tersimpan');
+});
 
-  if(jenis==='all' || jenis==='masuk'){
-    const rows = state.suratMasuk.filter(filterByDate);
-    cont.innerHTML += `<div><h4 class="font-semibold">Surat Masuk (${rows.length})</h4><table class="w-full text-sm table-auto"><thead><tr class="bg-slate-100"><th class="p-2">#</th><th>Nomor</th><th>Tanggal</th><th>Asal</th><th>Perihal</th></tr></thead><tbody>${rows.map((r,i)=>`<tr class="border-t"><td class="p-2">${i+1}</td><td class="p-2">${escape(r.nomor)}</td><td class="p-2">${formatDate(r.tanggal)}</td><td class="p-2">${escape(r.asal)}</td><td class="p-2">${escape(r.perihal)}</td></tr>`).join('')}</tbody></table></div><hr class="my-3"/>`;
-  }
-  if(jenis==='all' || jenis==='keluar'){
-    const rows = state.suratKeluar.filter(filterByDate);
-    cont.innerHTML += `<div><h4 class="font-semibold">Surat Keluar (${rows.length})</h4><table class="w-full text-sm table-auto"><thead><tr class="bg-slate-100"><th class="p-2">#</th><th>Nomor</th><th>Tanggal</th><th>Tujuan</th><th>Perihal</th></tr></thead><tbody>${rows.map((r,i)=>`<tr class="border-t"><td class="p-2">${i+1}</td><td class="p-2">${escape(r.nomor)}</td><td class="p-2">${formatDate(r.tanggal)}</td><td class="p-2">${escape(r.tujuan)}</td><td class="p-2">${escape(r.perihal)}</td></tr>`).join('')}</tbody></table></div><hr class="my-3"/>`;
-  }
-  if(jenis==='all' || jenis==='sk'){
-    const rows = state.sk.filter(filterByDate);
-    cont.innerHTML += `<div><h4 class="font-semibold">SK (${rows.length})</h4><table class="w-full text-sm table-auto"><thead><tr class="bg-slate-100"><th class="p-2">#</th><th>Nomor</th><th>Tanggal</th><th>Judul</th></tr></thead><tbody>${rows.map((r,i)=>`<tr class="border-t"><td class="p-2">${i+1}</td><td class="p-2">${escape(r.nomor)}</td><td class="p-2">${formatDate(r.tanggal)}</td><td class="p-2">${escape(r.judul)}</td></tr>`).join('')}</tbody></table></div><hr class="my-3"/>`;
-  }
-  if(jenis==='all' || jenis==='doklain'){
-    const rows = state.doklain.filter(filterByDate);
-    cont.innerHTML += `<div><h4 class="font-semibold">Dokumen Lain (${rows.length})</h4><table class="w-full text-sm table-auto"><thead><tr class="bg-slate-100"><th class="p-2">#</th><th>Jenis</th><th>Judul</th><th>Tanggal</th></tr></thead><tbody>${rows.map((r,i)=>`<tr class="border-t"><td class="p-2">${i+1}</td><td class="p-2">${escape(r.jenis)}</td><td class="p-2">${escape(r.judul)}</td><td class="p-2">${formatDate(r.tanggal)}</td></tr>`).join('')}</tbody></table></div>`; 
-  }
+// ---------- Render Functions ----------
+function updateStats(){
+  document.getElementById('statTotal').innerText = arsip.length;
+  document.getElementById('statMasuk').innerText = arsip.filter(a=>a.status==='ada').length;
+  document.getElementById('statKeluar').innerText = arsip.filter(a=>a.status==='pinjam').length;
+  document.getElementById('statKategori').innerText = 4;
 }
 
-/* =========================
-   Export / Import / Reset / Seed
-   ========================= */
-document.getElementById('exportJson').addEventListener('click', ()=> {
-  const data = JSON.stringify(state, null, 2);
-  downloadFile('kwarran_arsip_backup.json', data, 'application/json');
-});
-document.getElementById('exportCsv').addEventListener('click', ()=> {
-  downloadFile('kwarran_arsip_export.csv', toCSV(), 'text/csv');
-});
-function downloadFile(name, content, mime){
-  const a=document.createElement('a'); const blob=new Blob([content],{type:mime}); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+function renderArsip(){
+  const tbody = document.getElementById('tblArsip'); tbody.innerHTML='';
+  arsip.forEach((d,i)=>{
+    tbody.insertAdjacentHTML('beforeend', `<tr>
+      <td>${i+1}</td><td>${escapeHtml(d.kodebox)}</td><td>${escapeHtml(d.kodearsip)}</td>
+      <td>${escapeHtml(d.bidang)}</td><td>${escapeHtml(d.subbid)}</td><td>${escapeHtml(d.kegiatan)}</td>
+      <td>${escapeHtml(d.tahun)}</td><td>${escapeHtml(d.status)}</td>
+      <td>
+        <button class="btn btn-sm btn-yellow" onclick="editArsip(${i})">Edit</button>
+        <button class="btn btn-sm btn-red" onclick="deleteArsip(${i})">Hapus</button>
+      </td>
+    </tr>`);
+  });
 }
-function toCSV(){
-  const arrToCsv=(rows, fields)=> [fields.join(',')].concat(rows.map(r=>fields.map(f=>`"${((r[f]||'')+'').replace(/"/g,'""')}"`).join(','))).join('\r\n');
-  const a = arrToCsv(state.suratMasuk, ['nomor','tanggal','asal','perihal']);
-  const b = arrToCsv(state.suratKeluar, ['nomor','tanggal','tujuan','perihal']);
-  const s = arrToCsv(state.sk, ['nomor','tanggal','judul','keterangan']);
-  const d = arrToCsv(state.doklain, ['jenis','judul','tanggal','keterangan']);
-  return a + '\r\n\r\n' + b + '\r\n\r\n' + s + '\r\n\r\n' + d;
-}
-document.getElementById('importFile').addEventListener('change', async (e)=> {
-  const f = e.target.files[0]; if(!f) return;
-  const txt = await f.text();
-  if(f.name.endsWith('.json')) {
-    try { const parsed = JSON.parse(txt); if(parsed.suratMasuk && parsed.suratKeluar && parsed.sk && parsed.doklain && parsed.disposisi) { state = parsed; saveState(); refreshAll(); showToast('Import JSON berhasil'); } else showToast('File JSON tidak sesuai'); } catch(err){ showToast('Gagal parse JSON'); }
-  } else {
-    // naive CSV import into suratMasuk
-    const lines = txt.split(/\r?\n/).filter(Boolean);
-    const headers = lines[0].split(',');
-    const rows = lines.slice(1).map(l=>{ const cols=l.split(','); const obj={}; headers.forEach((h,i)=>obj[h.trim()]=(cols[i]||'').replace(/^"|"$/g,'')); return obj; });
-    state.suratMasuk = rows.map(r=>({id:uid('s'), nomor:r.nomor||'', tanggal:r.tanggal||'', asal:r.asal||'', perihal:r.perihal||''}));
-    saveState(); refreshAll(); showToast('Import CSV selesai (ke Surat Masuk)');
+
+function openArsipModal(idx=null){
+  document.getElementById('formArsipModal').reset();
+  document.getElementById('editIndex').value = idx!==null?idx:'';
+  if(idx!==null){
+    const d = arsip[idx];
+    document.getElementById('f_kodebox').value = d.kodebox;
+    document.getElementById('f_kodearsip').value = d.kodearsip;
+    document.getElementById('f_bidang').value = d.bidang;
+    document.getElementById('f_subbid').value = d.subbid;
+    document.getElementById('f_kegiatan').value = d.kegiatan;
+    document.getElementById('f_tahun').value = d.tahun;
+    document.getElementById('f_status').value = d.status;
   }
-  e.target.value='';
-});
-document.getElementById('btnReset').addEventListener('click', ()=> {
-  if(!confirm('Reset semua data?')) return; localStorage.removeItem(STORAGE_KEY); state = defaultState(); saveState(); refreshAll(); showToast('Data direset');
-});
-document.getElementById('btnSeed').addEventListener('click', ()=> {
-  state.suratMasuk.unshift({id:uid('s'), nomor:'M-2025-001', tanggal:'2025-07-15', asal:'Kwarcab', perihal:'Undangan Rapat', file:null, createdAt:new Date().toISOString()});
-  state.suratKeluar.unshift({id:uid('s'), nomor:'K-2025-001', tanggal:'2025-07-18', tujuan:'Kwartir Ranting', perihal:'Laporan Kegiatan', file:null, createdAt:new Date().toISOString()});
-  state.sk.unshift({id:uid('sk'), nomor:'SK-01/2025', tanggal:'2025-06-01', judul:'SK Panitia', keterangan:'SK pembentukan panitia', file:null, createdAt:new Date().toISOString()});
-  state.doklain.unshift({id:uid('d'), jenis:'Proposal', judul:'Proposal Persami', tanggal:'2025-05-10', keterangan:'Proposal kegiatan Persami', file:null, createdAt:new Date().toISOString()});
-  saveState(); refreshAll(); showToast('Data contoh ditambahkan');
-});
-
-/* =========================
-   Disposisi operations: edit/delete already implemented above
-   ========================= */
-
-/* =========================
-   Utility: refresh everything
-   ========================= */
-function refreshAll(){
-  saveState();
-  refreshStats();
-  renderChart();
-  renderMasuk();
-  renderKeluar();
-  renderSK();
-  renderDoklain();
-  renderDisposisi();
+  bsModal.show();
 }
 
-/* =========================
-   Expose functions for inline onclicks
-   ========================= */
-window.openForm = openForm;
-window.deleteDoc = deleteDoc;
-window.viewDoc = viewDoc;
-window.openDispFrom = openDispFrom;
-window.openDispFrom = openDispFrom;
-window.openDispFrom = openDispFrom;
-window.openDispFrom = openDispFrom;
-window.openDispFrom = openDispFrom;
-window.openDispFrom = openDispFrom;
-window.editDisp = editDisp;
-window.deleteDisp = deleteDisp;
+function editArsip(i){ openArsipModal(i); }
+function deleteArsip(i){ if(confirm('Hapus arsip ini?')){ arsip.splice(i,1); saveAll(); renderArsip(); } }
 
-/* =========================
-   init: show login (default)
-   ========================= */
-renderUser();
-refreshAll();
+function renderDispSelect(){
+  const sel = document.getElementById('dispSelect'); sel.innerHTML='<option value="">-- pilih surat --</option>';
+  arsip.forEach((a,i)=>sel.insertAdjacentHTML('beforeend', `<option value="${i}">${a.kodearsip||a.kegiatan||'No '+(i+1)}</option>`));
+}
 
-/* small keyboard UX: close modals with Escape */
-document.addEventListener('keydown', (e)=> { if(e.key==='Escape'){ document.getElementById('modalForm').classList.add('hidden'); document.getElementById('modalDisp').classList.add('hidden'); } });
+function renderDispHistory(){
+  const tbody = document.getElementById('dispHistory'); tbody.innerHTML='';
+  disposisi.forEach((d,i)=>{ tbody.insertAdjacentHTML('beforeend', `<tr>
+    <td>${i+1}</td><td>${escapeHtml(d.nomor)}</td><td>${escapeHtml(d.asal)}</td>
+    <td>${escapeHtml(d.sifat)}</td><td>${escapeHtml(d.diteruskan)}</td>
+    <td>${escapeHtml(d.tgl)}</td><td><button class="btn btn-sm btn-secondary" onclick="viewDisp(${i})">Lihat</button></td>
+  </tr>`); });
+}
 
+function viewDisp(i){
+  const d = disposisi[i];
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><title>Disposisi</title>
+  <style>body{font-family:Arial;padding:20px} table{width:100%;border-collapse:collapse} td,th{border:1px solid #ccc;padding:8px}</style>
+  </head><body><h3>Lembar Disposisi</h3>
+  <table>
+  <tr><th>Nomor</th><td>${escapeHtml(d.nomor)}</td></tr>
+  <tr><th>Asal</th><td>${escapeHtml(d.asal)}</td></tr>
+  <tr><th>Sifat</th><td>${escapeHtml(d.sifat)}</td></tr>
+  <tr><th>Diteruskan Kepada</th><td>${escapeHtml(d.diteruskan)}</td></tr>
+  <tr><th>Tanggal</th><td>${escapeHtml(d.tgl)}</td></tr>
+  <tr><th>Instruksi</th><td>${escapeHtml(d.instruksi)}</td></tr>
+  </table></body></html>`);
+  w.print();
+}
+
+// ---------- Kode & Bidang ----------
+document.getElementById('btnAddKode').addEventListener('click', ()=>{
+  const kode = prompt('Kode Arsip:'); if(!kode) return;
+  const ket = prompt('Keterangan:'); kodeList.push({kode, ket}); localStorage.setItem('kode_v1', JSON.stringify(kodeList)); renderKode();
+});
+function renderKode(){
+  const tbody = document.getElementById('tblKode'); tbody.innerHTML='';
+  kodeList.forEach((k,i)=>tbody.insertAdjacentHTML('beforeend', `<tr>
+    <td>${i+1}</td><td>${escapeHtml(k.kode)}</td><td>${escapeHtml(k.ket)}</td>
+    <td><button class="btn btn-sm btn-red" onclick="delKode(${i})">Hapus</button></td>
+  </tr>`));
+}
+function delKode(i){ if(confirm('Hapus kode ini?')){ kodeList.splice(i,1); localStorage.setItem('kode_v1', JSON.stringify(kodeList)); renderKode(); } }
+
+document.getElementById('btnAddBidang').addEventListener('click', ()=>{
+  const nama = prompt('Nama Bidang:'); if(!nama) return;
+  const ket = prompt('Keterangan:'); bidangList.push({nama, ket}); localStorage.setItem('bidang_v1', JSON.stringify(bidangList)); renderBidang();
+});
+function renderBidang(){
+  const tbody = document.getElementById('tblBidang'); tbody.innerHTML='';
+  bidangList.forEach((b,i)=>tbody.insertAdjacentHTML('beforeend', `<tr>
+    <td>${i+1}</td><td>${escapeHtml(b.nama)}</td><td>${escapeHtml(b.ket)}</td>
+    <td><button class="btn btn-sm btn-red" onclick="delBidang(${i})">Hapus</button></td>
+  </tr>`));
+}
+function delBidang(i){ if(confirm('Hapus bidang ini?')){ bidangList.splice(i,1); localStorage.setItem('bidang_v1', JSON.stringify(bidangList)); renderBidang(); } }
+
+// ---------- Init ----------
+showPage('pageDashboard');
 </script>
 </body>
 </html>
-
-
-
